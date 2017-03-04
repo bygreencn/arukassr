@@ -3,11 +3,9 @@
 FROM ubuntu:14.04.3
 MAINTAINER malaohu <tua@live.cn>
 
-RUN add-apt-repository ppa:chris-lea/libsodium 
-
 RUN apt-get update && \
 apt-get clean  && \
-apt-get install -y git gcc libsodium-dev python python-pip python-m2crypto libnet1-dev libpcap0.8-dev && \
+apt-get install -y python python-pip python-m2crypto libnet1-dev libpcap0.8-dev git gcc && \
 apt-get clean
 
 RUN git clone -b manyuser https://github.com/breakwa11/shadowsocks.git ssr
