@@ -1,54 +1,33 @@
-# ssr-with-net-speeder
+#
+# Dockerfile for ShadowsocksR
+#
 
-FROM ubuntu:14.04.3
-MAINTAINER malaohu <tua@live.cn>
+FROM alpine:3.4
 
-# Define Libsodium version
-ENV LIBSODIUM_VERSION 1.0.11
+ENV SSR_URL https://github.com/shadowsocksr/shadowsocksr/archive/manyuser.zip
 
-# Define workdir
-WORKDIR /root
+RUN set -ex \
+    && apk --update add --no-cache libsodium py-pip \
+    && pip --no-cache-dir install $SSR_URL \
+    && rm -rf /var/cache/apk
 
-# Install some tools: gcc build tools, unzip, etc
-RUN \
-    apt-get update && \
-    apt-get -y upgrade && \
-    apt-get -y install curl build-essential unzip locate git python python-pip python-m2crypto libnet1-dev libpcap0.8-dev
+ENV SERVER_ADDR 0.0.0.0
+ENV SERVER_PORT 8388
+ENV PASSWORD    p@ssw0rd
+ENV METHOD      aes-256-cfb
+ENV PROTOCOL    auth_sha1_compatible
+ENV OBFS        http_simple_compatible
+ENV TIMEOUT     300
 
-# Download & extract & make libsodium
-# Move libsodium build
-RUN \
-    mkdir -p /tmpbuild/libsodium && \
-    cd /tmpbuild/libsodium && \
-    curl -L https://download.libsodium.org/libsodium/releases/libsodium-${LIBSODIUM_VERSION}.tar.gz -o libsodium-${LIBSODIUM_VERSION}.tar.gz && \
-    tar xfvz libsodium-${LIBSODIUM_VERSION}.tar.gz && \
-    cd /tmpbuild/libsodium/libsodium-${LIBSODIUM_VERSION}/ && \
-    ./configure && \
-    make && make check && \
-    make install && \
-    mv src/libsodium /usr/local/ && \
-    rm -Rf /tmpbuild/
+EXPOSE $SERVER_PORT/tcp
+EXPOSE $SERVER_PORT/udp
 
-RUN \
-    apt-get update && \
-    apt-get clean  
+WORKDIR /usr/bin/
 
-RUN git clone -b manyuser https://github.com/breakwa11/shadowsocks.git ssr
-RUN git clone https://github.com/snooda/net-speeder.git net-speeder
-WORKDIR net-speeder
-RUN sh build.sh
-
-RUN mv net_speeder /usr/local/bin/
-COPY entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/net_speeder
-
-# Start Net Speeder
-#CMD ["nohup /usr/local/bin/net_speeder venet0 \"ip\" >/dev/null 2>&1 &"]
-
-#Test 
-#CMD ["ping www.baidu.com -c 5"]
-
-
-# Configure container to run as an executable
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ssserver -s $SERVER_ADDR \
+             -p $SERVER_PORT \
+             -k $PASSWORD    \
+             -m $METHOD      \
+             -O $PROTOCOL    \
+             -o $OBFS        \
+             -t $TIMEOUT
