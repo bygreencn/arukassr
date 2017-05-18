@@ -14,9 +14,9 @@ RUN set -ex \
 ENV SERVER_ADDR 0.0.0.0
 ENV SERVER_PORT 8388
 ENV PASSWORD    p@ssw0rd
-ENV METHOD      aes-256-cfb
-ENV PROTOCOL    auth_sha1_compatible
-ENV OBFS        http_simple_compatible
+ENV METHOD      aes-128-cfb
+ENV PROTOCOL    auth_sha1_v4_compatible
+ENV OBFS        tls1.2_ticket_auth_compatible
 ENV TIMEOUT     300
 
 EXPOSE $SERVER_PORT/tcp
